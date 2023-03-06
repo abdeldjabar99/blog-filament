@@ -55,7 +55,7 @@ class PostResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('id'),
-                TextColumn::make('name')->limit(50)->searchable(),
+                TextColumn::make('title')->limit(50)->searchable(),
                 TextColumn::make('slug')->limit(50),
                 CheckboxColumn::make('is_published'),
                 SpatieMediaLibraryImageColumn::make('thumbnail')->collection('posts'),
