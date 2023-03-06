@@ -5,11 +5,21 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\PostResource\Pages;
 use App\Filament\Resources\PostResource\RelationManagers;
 use App\Models\Post;
+use Closure;
 use Filament\Forms;
+use Filament\Forms\Components\Card;
+use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\Form;
 use Filament\Resources\Resource;
 use Filament\Resources\Table;
 use Filament\Tables;
+use Filament\Tables\Columns\CheckboxColumn;
+use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
+use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
@@ -23,7 +33,20 @@ class PostResource extends Resource
     {
         return $form
             ->schema([
-                //
+                Card::make()
+                    ->schema([
+                        Select::make('category_id')
+                            ->relationship('category', 'name'),
+                        TextInput::make('title')
+                            ->reactive()
+                            ->afterStateUpdated(function (Closure $set, $state) {
+                                $set('slug', str()->slug($state));
+                            })->required(),
+                        TextInput::make('slug')->required(),
+                        SpatieMediaLibraryFileUpload::make('thumbnail')->collection('posts'),
+                        RichEditor::make('content'),
+                        Toggle::make('is_published'),
+                    ]),
             ]);
     }
 
@@ -31,7 +54,12 @@ class PostResource extends Resource
     {
         return $table
             ->columns([
-                //
+                TextColumn::make('id'),
+                TextColumn::make('name')->limit(50)->searchable(),
+                TextColumn::make('slug')->limit(50),
+                CheckboxColumn::make('is_published'),
+                SpatieMediaLibraryImageColumn::make('thumbnail')->collection('posts'),
+
             ])
             ->filters([
                 //
@@ -43,14 +71,14 @@ class PostResource extends Resource
                 Tables\Actions\DeleteBulkAction::make(),
             ]);
     }
-    
+
     public static function getRelations(): array
     {
         return [
             //
         ];
     }
-    
+
     public static function getPages(): array
     {
         return [
@@ -58,5 +86,5 @@ class PostResource extends Resource
             'create' => Pages\CreatePost::route('/create'),
             'edit' => Pages\EditPost::route('/{record}/edit'),
         ];
-    }    
+    }
 }
